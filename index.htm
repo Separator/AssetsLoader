@@ -23,10 +23,15 @@
 			$(document).ready(function() {
                 Common['Assets'] = new Assets({
                     "statusHandler":    function(message) {
-                        console.log(message);
+                        //console.log(message);
                     },
                     "progressHandler": function(progress) {
-                        console.log('progress: ' + progress);
+                        //console.log('progress: ' + progress);
+                    },
+                    "itemHandlers": {
+                        "units": function(units) {
+                            console.log(units);
+                        }
                     }
                 });
 			});

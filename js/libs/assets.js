@@ -33,6 +33,7 @@ function Assets(options) {
         "progress": 0,
         "loadStep": 0,
         "loadedItems":  null,
+        "loadedImagesItems": null,
 
 
         "statusHandler":            function(message) {},
@@ -286,9 +287,7 @@ function Assets(options) {
         return result;
     };
 
-    this.setStep = function(value) {
-        this['loadStep'] = value;
-    };
+
 
     this.loadItem = function(itemName, item) {
         var phrases = this['phrases'];
@@ -304,6 +303,7 @@ function Assets(options) {
                     "context":  this,
                     "url":      this['paths']['assetsDirectory'] + '/' + itemName + '/' + this['paths']['catalogFile'],
                     "success":  function(itemData) {
+                        var that = this;
                         if (!this['loadedItems']) {
                             this['loadedItems'] = {};
                         };
@@ -331,9 +331,44 @@ function Assets(options) {
                                     };
                                 };
                                 if (imagesNum) {
-                                    var imagesNum
+                                    // создаём хранилище для картинок:
+                                    if (!this['loadedImagesItems']) {
+                                        this['loadedImagesItems'] = {};
+                                    };
+                                    this['loadedImagesItems'][itemName] = {};
+                                    var loadedImagesNum = 0;
                                     for (var unitName in hasImages) {
-
+                                        this['loadedImagesItems'][itemName][unitName] = {};
+                                        var unitImages = hasImages[unitName];
+                                        for (var imageName in unitImages) {
+                                            (function() {
+                                                var imageSrc = ''
+                                                var imageName = imageName;
+                                                var imageObject = new Image();
+                                                imageObject.onload = function() {
+                                                    loadedImagesNum++;
+                                                    that['loadedImagesItems'][itemName][unitName][imageName] = this;
+                                                    if (loadedImagesNum == imagesNum) {
+                                                        // обработка загрузки:
+                                                        that.setProgress(that['progress'] + that['loadStep']);
+                                                        if (that['itemHandlers'][itemName]) {
+                                                            that['itemHandlers'][itemName](that['loadedItems'][itemName]);
+                                                        };
+                                                    };
+                                                };
+                                                imageObject.onerror = function() {
+                                                    loadedImagesNum++;
+                                                    that.loadFailHandler(phrases['load_error'] + ' "' + imageName + '->' + imageSrc + '"');
+                                                    if (loadedImagesNum == imagesNum) {
+                                                        // обработка загрузки:
+                                                        that.setProgress(that['progress'] + that['loadStep']);
+                                                        if (that['itemHandlers'][itemName]) {
+                                                            that['itemHandlers'][itemName](that['loadedItems'][itemName]);
+                                                        };
+                                                    };
+                                                }
+                                            })();
+                                        };
                                     };
                                 } else {
                                     // обработка загрузки:
@@ -354,6 +389,14 @@ function Assets(options) {
         return true;
     };
 
+
+    /**
+     * Установка шага загрузки
+     * @param value
+     */
+    this.setStep = function(value) {
+        this['loadStep'] = value;
+    };
     /**
      * Установка текущего процента загрузки активов
      * @param value
@@ -372,6 +415,9 @@ function Assets(options) {
      * @return {Boolean}
      */
     this.load = function(loadList) {
+        if (!_.size(loadList)) {
+            return false;
+        };
         this.setProgress(0);
         this.setStep(100 / _.size(loadList));
         // начинаем загрузку:
