@@ -1,0 +1,65 @@
+{
+    "NAME":     "sorcerer",
+    "WIDTH":    5,
+    "LENGTH":   5,
+    "HEIGHT":   10,
+    "RADIUS":   5,
+    "MASS":     5,
+    "SHAPE":    "circle",
+    "ANIMATION":{
+        "ANGLE": [
+            {
+                "BEGIN":    0,
+                "END":      45,
+                "NAME":     "stay_right"
+            },
+            {
+                "BEGIN":    46,
+                "END":      135,
+                "NAME":     "stay_top"
+            },
+            {
+                "BEGIN":    136,
+                "END":      225,
+                "NAME":     "stay_left"
+            },
+            {
+                "BEGIN":    226,
+                "END":      315,
+                "NAME":     "stay_left"
+            },
+            {
+                "BEGIN":    316,
+                "END":      360,
+                "NAME":     "stay_right"
+            }
+        ],
+        "MOVE": [
+            {
+                "BEGIN":    0,
+                "END":      45,
+                "NAME":     "right"
+            },
+            {
+                "BEGIN":    46,
+                "END":      135,
+                "NAME":     "top"
+            },
+            {
+                "BEGIN":    136,
+                "END":      225,
+                "NAME":     "left"
+            },
+            {
+                "BEGIN":    226,
+                "END":      315,
+                "NAME":     "left"
+            },
+            {
+                "BEGIN":    316,
+                "END":      360,
+                "NAME":     "right"
+            }
+        ]
+    }
+}

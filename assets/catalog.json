@@ -1,0 +1,10 @@
+{
+    "units": {
+        "type": "hash",
+        "description": "Список юнитов"
+    },
+    "animations": {
+        "type": "animation",
+        "description": "Список анимаций"
+    }
+}
