@@ -6,5 +6,9 @@
     "animations": {
         "type": "animation",
         "description": "Список анимаций"
+    },
+    "blocks": {
+        "type": "hash",
+        "description": "Набор различных блоков"
     }
 }

@@ -340,10 +340,13 @@ function Assets(options) {
                                     for (var unitName in hasImages) {
                                         this['loadedImagesItems'][itemName][unitName] = {};
                                         var unitImages = hasImages[unitName];
+                                        //console.log(unitImages);
                                         for (var imageName in unitImages) {
-                                            (function() {
-                                                var imageSrc = ''
-                                                var imageName = imageName;
+                                            (function(imageName) {
+                                                var imageSrc = that['paths']['assetsDirectory'] +
+                                                    '/' + itemName + '/' + unitName +
+                                                    '/' + that['paths']['imagesDirectory'] +
+                                                    '/' + unitImages[imageName];
                                                 var imageObject = new Image();
                                                 imageObject.onload = function() {
                                                     loadedImagesNum++;
@@ -366,8 +369,9 @@ function Assets(options) {
                                                             that['itemHandlers'][itemName](that['loadedItems'][itemName]);
                                                         };
                                                     };
-                                                }
-                                            })();
+                                                };
+                                                imageObject.src = imageSrc;
+                                            })(imageName);
                                         };
                                     };
                                 } else {
@@ -406,7 +410,7 @@ function Assets(options) {
         if (value > 100) value = 100;
         this['progress'] = value;
         if (this['progressHandler']) {
-            this.progressHandler(this['progress']);
+            this.progressHandler(Math.floor(this['progress']));
         };
     };
     /**

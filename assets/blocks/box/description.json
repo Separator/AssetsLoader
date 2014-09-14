@@ -1,0 +1,11 @@
+{
+    "NAME":     "box",
+    "WIDTH":    5,
+    "LENGTH":   5,
+    "HEIGHT":   10,
+    "MASS":     5,
+    "images":   {
+        "default": "default.png"
+    }
+
+}
