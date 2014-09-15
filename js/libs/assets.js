@@ -210,65 +210,11 @@ function Assets(options) {
         };
     };*/
 
-
     /**
-     * Получение юнитов
-     * @param dir
-     * @param catalog
-     * @return {Boolean}
+     * Получение информации из json-файлов
+     * @param url
+     * @returns {boolean}
      */
-    /*this.unitLoad = function(dir, catalog) {
-        var filePath = dir + '/' + catalog;
-        var result   = false;
-        $.ajax(
-            $.extend(
-                true,
-                _.clone(this['ajax']),
-                {
-                    "context":  this,
-                    "url":      filePath,
-                    "success":  function(data) {
-                        var that = this;
-                        // получаем список анимаций:
-                        var unitsList = data['units'];
-                        // вытаскиваем детальную информацию:
-                        var units ={};
-                        for (var i = 0; i < unitsList.length; i++) {
-                            var path = dir + '/' + unitsList[i] + '/' + this['assetDescription'];
-                            $.ajax(
-                                $.extend(
-                                    true,
-                                    _.clone(this['ajax']),
-                                    {
-                                        "url":  path,
-                                        "success": function(data) {
-                                            units[unitsList[i]] = data;
-                                        }
-                                    }
-                                )
-                            );
-                        };
-                        if (_.size(units)) {
-                            // дополняем список активов:
-                            if (this['unitsList']) {
-                                $.extend(true, this['unitsList'], units);
-                            } else {
-                                this['unitsList'] = units;
-                            };
-                            if (this['unitsLoaded']) {
-                                this['unitsLoaded'](this['unitsList']);
-                            };
-                            result = this['unitsList'];
-                        } else {
-                            result = false;
-                        };
-                    }
-                }
-            )
-        );
-        return result;
-    };*/
-
     this.request = function(url) {
         var result = false;
         $.ajax(
@@ -287,8 +233,172 @@ function Assets(options) {
         return result;
     };
 
+    this.animationProcess = function(itemName) {
 
+    };
 
+    this.loadAnimation = function(itemName, itemData) {
+        var that = this;
+        var phrases = this['phrases'];
+        var imagesNum = 0;
+        var hasImages = false;
+        for (var animationName in itemData) {
+            var animationOptions = this.request(
+                this['paths']['assetsDirectory']+'/'+itemName+'/'+animationName+'/'+this['paths']['descriptionFile']
+            );
+            if (animationOptions) {
+                this['loadedItems'][itemName][animationName] = animationOptions;
+                if (!hasImages) {
+                    hasImages = {};
+                };
+                hasImages[animationName] = {};
+                for (var actionName in animationOptions) {
+                    var frames = animationOptions[actionName]['frames'];
+                    hasImages[animationName][actionName] = frames;
+                    imagesNum += frames.length;
+                };
+            } else {
+                this.loadFailHandler(phrases['load_error'] + ' "' + itemName + '->' + animationName + '"');
+            };
+        };
+        if (imagesNum) {
+            // создаём хранилище для картинок:
+            if (!this['loadedImagesItems']) {
+                this['loadedImagesItems'] = {};
+            };
+            this['loadedImagesItems'][itemName] = {};
+            var loadedImagesNum = 0;
+            for (var animationName in hasImages) {
+                this['loadedImagesItems'][itemName][animationName] = {};
+                var animationItem = hasImages[animationName];
+                var imagePath = this['paths']['assetsDirectory'] + '/' +
+                    itemName + '/' + animationName + '/' +
+                    this['paths']['imagesDirectory'] + '/';
+                for (var actionName in animationItem) {
+                    var frames = animationItem[actionName];
+                    for (var i = 0; i < frames.length; i++) {
+                        var imageName = frames[i]['i'];
+                        (function(itemName, animationName, imageName, imagePath) {
+                            var imageObject = new Image();
+                            imageObject.onload = function() {
+                                loadedImagesNum++;
+                                that['loadedImagesItems'][itemName][animationName][imageName] = this;
+                                if (loadedImagesNum == imagesNum) {
+                                    // обработка загрузки:
+                                    that.setProgress(that['progress'] + that['loadStep']);
+                                    if (that['itemHandlers'][itemName]) {
+                                        that['itemHandlers'][itemName](that.animationProcess(itemName));
+                                    };
+                                };
+                            };
+                            imageObject.onerror = function() {
+                                loadedImagesNum++;
+                                that.loadFailHandler(phrases['load_error'] + ' "' + animationName + '->' + imageName + '"');
+                                if (loadedImagesNum == imagesNum) {
+                                    // обработка загрузки:
+                                    that.setProgress(that['progress'] + that['loadStep']);
+                                    if (that['itemHandlers'][itemName]) {
+                                        that['itemHandlers'][itemName](that.animationProcess(itemName));
+                                    };
+                                };
+                            };
+                            imageObject.src = imagePath + imageName;
+                        })(itemName, animationName, imageName, imagePath);
+                    };
+                };
+            };
+        } else {
+            // обработка загрузки:
+            this.setProgress(this['progress'] + this['loadStep']);
+            if (this['itemHandlers'][itemName]) {
+                this['itemHandlers'][itemName](this['loadedItems'][itemName]);
+            };
+        };
+    };
+    /**
+     * Загрузка актива типа "hash"
+     * @param itemName
+     * @param itemData
+     */
+    this.loadHash = function(itemName, itemData) {
+        var that = this;
+        var hasImages = false;
+        var imagesNum = 0;
+        var phrases = this['phrases'];
+        for (var unitName in itemData) {
+            var unitOptions = this.request(
+                this['paths']['assetsDirectory']+'/'+itemName+'/'+unitName+'/'+this['paths']['descriptionFile']
+            );
+            if (unitOptions) {
+                this['loadedItems'][itemName][unitName] = unitOptions;
+                if ("images" in unitOptions) {
+                    if (!hasImages) {
+                        hasImages = {};
+                    };
+                    hasImages[unitName] = unitOptions['images'];
+                    imagesNum += _.size(unitOptions['images']);
+                };
+            } else {
+                this.loadFailHandler(phrases['load_error'] + ' "' + itemName + '->' + unitName + '"');
+            };
+        };
+        if (imagesNum) {
+            // создаём хранилище для картинок:
+            if (!this['loadedImagesItems']) {
+                this['loadedImagesItems'] = {};
+            };
+            this['loadedImagesItems'][itemName] = {};
+            var loadedImagesNum = 0;
+            for (var unitName in hasImages) {
+                this['loadedImagesItems'][itemName][unitName] = {};
+                var unitImages = hasImages[unitName];
+                for (var imageName in unitImages) {
+                    (function(imageName, unitName) {
+                        var imageSrc = that['paths']['assetsDirectory'] +
+                            '/' + itemName + '/' + unitName +
+                            '/' + that['paths']['imagesDirectory'] +
+                            '/' + unitImages[imageName];
+                        var imageObject = new Image();
+                        imageObject.onload = function() {
+                            loadedImagesNum++;
+                            that['loadedImagesItems'][itemName][unitName][imageName] = this;
+                            if (loadedImagesNum == imagesNum) {
+                                // обработка загрузки:
+                                that.setProgress(that['progress'] + that['loadStep']);
+                                if (that['itemHandlers'][itemName]) {
+                                    that['itemHandlers'][itemName](that['loadedItems'][itemName]);
+                                };
+                            };
+                        };
+                        imageObject.onerror = function() {
+                            loadedImagesNum++;
+                            that.loadFailHandler(phrases['load_error'] + ' "' + imageName + '->' + imageSrc + '"');
+                            if (loadedImagesNum == imagesNum) {
+                                // обработка загрузки:
+                                that.setProgress(that['progress'] + that['loadStep']);
+                                if (that['itemHandlers'][itemName]) {
+                                    that['itemHandlers'][itemName](that['loadedItems'][itemName]);
+                                };
+                            };
+                        };
+                        imageObject.src = imageSrc;
+                    })(imageName, unitName);
+                };
+            };
+        } else {
+            // обработка загрузки:
+            this.setProgress(this['progress'] + this['loadStep']);
+            if (this['itemHandlers'][itemName]) {
+                this['itemHandlers'][itemName](this['loadedItems'][itemName]);
+            };
+        };
+    };
+    /**
+     * Загрузка актива
+     * @param itemName
+     * @param item
+     * @returns {boolean}
+     */
     this.loadItem = function(itemName, item) {
         var phrases = this['phrases'];
         if (this['statusHandler']) {
@@ -303,84 +413,17 @@ function Assets(options) {
                     "context":  this,
                     "url":      this['paths']['assetsDirectory'] + '/' + itemName + '/' + this['paths']['catalogFile'],
                     "success":  function(itemData) {
-                        var that = this;
                         if (!this['loadedItems']) {
                             this['loadedItems'] = {};
                         };
                         this['loadedItems'][itemName] = {};
-
                         switch (item['type']) {
+                            case "animation":
+                                this.loadAnimation(itemName, itemData);
+                                break;
                             case "hash":
-                                var hasImages = false;
-                                var imagesNum = 0;
-                                for (var unitName in itemData) {
-                                    var unitOptions = this.request(
-                                        this['paths']['assetsDirectory']+'/'+itemName+'/'+unitName+'/'+this['paths']['descriptionFile']
-                                    );
-                                    if (unitOptions) {
-                                        this['loadedItems'][itemName][unitName] = unitOptions;
-                                        if ("images" in unitOptions) {
-                                            if (!hasImages) {
-                                                hasImages = {};
-                                            };
-                                            hasImages[unitName] = unitOptions['images'];
-                                            imagesNum += _.size(unitOptions['images']);
-                                        };
-                                    } else {
-                                        this.loadFailHandler(phrases['load_error'] + ' "' + itemName + '->' + unitName + '"');
-                                    };
-                                };
-                                if (imagesNum) {
-                                    // создаём хранилище для картинок:
-                                    if (!this['loadedImagesItems']) {
-                                        this['loadedImagesItems'] = {};
-                                    };
-                                    this['loadedImagesItems'][itemName] = {};
-                                    var loadedImagesNum = 0;
-                                    for (var unitName in hasImages) {
-                                        this['loadedImagesItems'][itemName][unitName] = {};
-                                        var unitImages = hasImages[unitName];
-                                        //console.log(unitImages);
-                                        for (var imageName in unitImages) {
-                                            (function(imageName) {
-                                                var imageSrc = that['paths']['assetsDirectory'] +
-                                                    '/' + itemName + '/' + unitName +
-                                                    '/' + that['paths']['imagesDirectory'] +
-                                                    '/' + unitImages[imageName];
-                                                var imageObject = new Image();
-                                                imageObject.onload = function() {
-                                                    loadedImagesNum++;
-                                                    that['loadedImagesItems'][itemName][unitName][imageName] = this;
-                                                    if (loadedImagesNum == imagesNum) {
-                                                        // обработка загрузки:
-                                                        that.setProgress(that['progress'] + that['loadStep']);
-                                                        if (that['itemHandlers'][itemName]) {
-                                                            that['itemHandlers'][itemName](that['loadedItems'][itemName]);
-                                                        };
-                                                    };
-                                                };
-                                                imageObject.onerror = function() {
-                                                    loadedImagesNum++;
-                                                    that.loadFailHandler(phrases['load_error'] + ' "' + imageName + '->' + imageSrc + '"');
-                                                    if (loadedImagesNum == imagesNum) {
-                                                        // обработка загрузки:
-                                                        that.setProgress(that['progress'] + that['loadStep']);
-                                                        if (that['itemHandlers'][itemName]) {
-                                                            that['itemHandlers'][itemName](that['loadedItems'][itemName]);
-                                                        };
-                                                    };
-                                                };
-                                                imageObject.src = imageSrc;
-                                            })(imageName);
-                                        };
-                                    };
-                                } else {
-                                    // обработка загрузки:
-                                    this.setProgress(this['progress'] + this['loadStep']);
-                                    if (this['itemHandlers'][itemName]) {
-                                        this['itemHandlers'][itemName](this['loadedItems'][itemName]);
-                                    };
-                                };
+                            default:
+                                this.loadHash(itemName, itemData);
                                 break;
                         };
                     },
@@ -392,8 +435,6 @@ function Assets(options) {
         );
         return true;
     };
-
-
     /**
      * Установка шага загрузки
      * @param value
