@@ -39,133 +39,43 @@ function Assets(options) {
         "statusHandler":            function(message) {},
         "progressHandler":          function(progress) {},
         "loadFailHandler":          function() {},
-        "itemHandlers":             {},
-
-
-
-
-
-        "animationsDir":            "assets/animations",
-        "unitsDir":                 "assets/units",
-        "assetsCatalog":            "catalog.json",
-        "assetDescription":         "description.json",
-
-        "animationsList":           null,
-        "animationsListFinished":   null,
-        "imagesList":               null,
-        "animationsLoaded":         function (animations) {},
-
-        "unitsList":                null,
-        "unitsLoaded":              function (units) {}
+        "itemHandlers":             {}
     };
 
     /**
-     * Получение анимации
-     * @param dir
-     * @param catalog
-     * @return {Boolean}
+     * Получить обработанные активы анимации
+     * @param animationObject
+     * @param animation
+     * @returns {*}
      */
-    /*this.animationLoad = function(dir, catalog) {
-        var filePath = dir + '/' + catalog;
-        var result   = false;
-        $.ajax(
-            $.extend(
-                true,
-                _.clone(this['ajax']),
-                {
-                    "context":  this,
-                    "url":      filePath,
-                    "success":  function(data) {
-                        var that = this;
-                        // получаем список анимаций:
-                        var animationsList = data['assets'];
-                        // вытаскиваем детальную информацию:
-                        var assets ={};
-                        for (var i = 0; i < animationsList.length; i++) {
-                            var path = dir + '/' + animationsList[i] + '/' + this['assetDescription'];
-                            $.ajax(
-                                $.extend(
-                                    true,
-                                    _.clone(this['ajax']),
-                                    {
-                                        "url":  path,
-                                        "success": function(data) {
-                                            assets[animationsList[i]] = data;
-                                        }
-                                    }
-                                )
-                            );
-                        };
-                        if (_.size(assets)) {
-                            // дополняем список активов:
-                            if (this['animationsList']) {
-                                $.extend(true, this['animationsList'], assets);
-                            } else {
-                                this['animationsList'] = assets;
-                            };
-                            // начинаем загрузку изображений:
-                            var imagesList  = this['imagesList'] || {};
-                            var imagesCount = 0;
-                            var loadedImagesCount = 0;
-                            // считаем кол-во изображений для загрузки:
-                            for (var assetName in assets) {
-                                for (var animationName in assets[assetName]) {
-                                    imagesCount += assets[assetName][animationName]["frames"].length;
-                                };
-                            };
-                            // подгружаем изображения:
-                            for (var assetName in assets) {
-                                if (!(assetName in imagesList)) {
-                                    imagesList[assetName] = {};
-                                };
-                                var asset = assets[assetName];
-                                // вытаскиваем имена файлов изображений:
-                                for (var animationName in asset) {
-                                    var frames = asset[animationName]["frames"];
-                                    for (var i = 0; i < frames.length; i++) {
-                                        var imgName = frames[i]["i"];
-                                        imagesList[assetName][imgName] = new Image();
-                                        imagesList[assetName][imgName].onload = function() {
-                                            loadedImagesCount++;
-                                            if (loadedImagesCount == imagesCount) {
-                                                if (!that['imagesList']) {
-                                                    that['imagesList'] = imagesList;
-                                                };
-                                                that.animationProcess();
-                                                if (that['animationsLoaded']) {
-                                                    that['animationsLoaded'](that['animationsListFinished']);
-                                                };
-                                            };
-                                        };
-                                        imagesList[assetName][imgName].src=this['animationsDir']+'/'+assetName+'/images/'+imgName;
-                                    };
-                                };
-                            };
-                            result = true;
-                        } else {
-                            result = false;
-                        };
-                    }
-                }
-            )
-        );
-        return result;
-    };*/
-    /**
-     * Обработка полученных активов
-     * @param animationsList
-     * @return {*}
-     */
-    /*this.animationProcess = function(animationsList) {
-        animationsList = animationsList || this['animationsList'];
-        if (!animationsList) {
-            return false;
+    this.getAnimationAssets = function(animationObject, animation) {
+        var loadedItems = this['loadedItems'];
+        var loadedImagesItems = this['loadedImagesItems'];
+        for (var itemName in loadedImagesItems) {
+            if (animationObject in loadedItems[itemName]) {
+                var animations = loadedItems[itemName][animationObject];
+                if (animation in animations) {
+                    return animations[animation];
+                };
+            };
         };
+        return false;
+    };
+
+    /**
+     * Получить обработанные активы анимации
+     * @param itemName
+     * @returns {Object}
+     */
+    this.animationProcess = function(itemName) {
         var result = {};
-        for (var asset in animationsList) {
-            result[asset] = {};
-            for (var animation in animationsList[asset]) {
-                var frames = animationsList[asset][animation]["frames"];
+        var animationBlocks = this['loadedItems'][itemName];
+        var imagesList = this['loadedImagesItems'][itemName];
+        for (var animationBlockName in animationBlocks) {
+            result[animationBlockName] = {};
+            var animationsList = animationBlocks[animationBlockName];
+            for (var animationName in animationsList) {
+                var frames = animationsList[animationName]["frames"];
                 var processedFrames = [];
                 var duration = 0;
                 var currentSecond = 0;
@@ -174,42 +84,19 @@ function Assets(options) {
                     processedFrames.push({
                         "begin":    currentSecond,
                         "end":      currentSecond + frames[i]['t'],
-                        "img":      this['imagesList'][asset][frames[i]['i']]
+                        "img":      imagesList[animationBlockName][frames[i]['i']]
                     });
                     currentSecond += frames[i]['t'];
                 };
-                result[asset][animation] = {
+                result[animationBlockName][animationName] = {
                     "duration": duration,
-                    "end":      animationsList[asset][animation]["end"],
+                    "end":      animationsList[animationName]["end"],
                     "frames":   processedFrames
                 };
             };
         };
-        this['animationsListFinished'] = result;
         return result;
-    };*/
-    /**
-     * Получить обработанные активы анимации
-     * @return {Object|Boolean}
-     */
-    /*this.getAnimationAssets = function(animationObject, animation) {
-        var assets = this['animationsListFinished'];
-        if (assets) {
-            if (animationObject) {
-                if (assets[animationObject] && assets[animationObject][animation]) {
-                    return assets[animationObject][animation];
-                } else {
-                    return false;
-                };
-            } else {
-                return assets;
-            };
-
-        } else {
-            return false;
-        };
-    };*/
-
+    };
     /**
      * Получение информации из json-файлов
      * @param url
@@ -226,17 +113,12 @@ function Assets(options) {
                 },
                 {
                     "success":  function(data)  {result = data;}/*,
-                    "error":    function(e)     {result = e}*/
+                 "error":    function(e)     {result = e}*/
                 }
             )
         );
         return result;
     };
-
-    this.animationProcess = function(itemName) {
-
-    };
-
     this.loadAnimation = function(itemName, itemData) {
         var that = this;
         var phrases = this['phrases'];
