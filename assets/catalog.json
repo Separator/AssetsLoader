@@ -10,5 +10,9 @@
     "blocks": {
         "type": "hash",
         "description": "Набор различных блоков"
+    },
+    "sounds": {
+        "type": "sound",
+        "description": "Список звуковых библиотек"
     }
 }

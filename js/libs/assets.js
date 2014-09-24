@@ -34,7 +34,7 @@ function Assets(options) {
         "loadStep": 0,
         "loadedItems":  null,
         "loadedImagesItems": null,
-
+        "loadedSoundsItems": null,
 
         "statusHandler":            function(message) {},
         "progressHandler":          function(progress) {},
@@ -275,6 +275,81 @@ function Assets(options) {
             };
         };
     };
+
+
+    this.loadSound = function(itemName, itemData) {
+        var that = this;
+        var hasSounds = false;
+        var soundsNum = 0;
+        var phrases = this['phrases'];
+        for (var soundLibName in itemData) {
+            var soundsList = this.request(
+                this['paths']['assetsDirectory']+'/'+itemName+'/'+soundLibName+'/'+this['paths']['descriptionFile']
+            );
+            if (soundsList) {
+                this['loadedItems'][itemName][soundLibName] = soundsList;
+                if (_.size(soundsList)) {
+                    if (!hasSounds) {
+                        hasSounds = {};
+                    };
+                    hasSounds[soundLibName] = soundsList;
+                    soundsNum += _.size(soundsList);
+                };
+            } else {
+                this.loadFailHandler(phrases['load_error'] + ' "' + itemName + '->' + soundLibName + '"');
+            };
+        };
+        if (hasSounds) {
+            // создаём хранилище для звуков:
+            if (!this['loadedSoundsItems']) {
+                this['loadedSoundsItems'] = {};
+            };
+            this['loadedSoundsItems'][itemName] = {};
+            var loadedSoundsNum = 0;
+            for (var soundLibName in hasSounds) {
+                this['loadedSoundsItems'][itemName][soundLibName] = {};
+                var filesList = hasSounds[soundLibName];
+                for (var soundFileName in filesList) {
+                    (function(soundFileName, soundLibName) {
+                        var filePath = that['paths']['assetsDirectory'] +
+                            '/' + itemName + '/' + soundLibName +
+                            '/' + soundFileName;
+                        var audio = new Audio();
+                        audio.addEventListener('canplaythrough', function() {
+                            loadedSoundsNum++;
+                            that['loadedSoundsItems'][itemName][soundLibName][soundFileName] = this;
+                            if (loadedSoundsNum == soundsNum) {
+                                // обработка загрузки:
+                                that.setProgress(that['progress'] + that['loadStep']);
+                                if (that['itemHandlers'][itemName]) {
+                                    that['itemHandlers'][itemName](that['loadedSoundsItems'][itemName]);
+                                };
+                            };
+                        }, false);
+                        audio.addEventListener('error', function() {
+                            loadedSoundsNum++;
+                            that.loadFailHandler(phrases['load_error'] + ' "' + soundLibName + '->' + soundFileName + '"');
+                            if (loadedSoundsNum == soundsNum) {
+                                // обработка загрузки:
+                                that.setProgress(that['progress'] + that['loadStep']);
+                                if (that['itemHandlers'][itemName]) {
+                                    that['itemHandlers'][itemName](that['loadedSoundsItems'][itemName]);
+                                };
+                            };
+                        }, false);
+                        audio.src = filePath;
+                    })(soundFileName, soundLibName);
+                };
+            };
+        } else {
+            // обработка загрузки:
+            this.setProgress(this['progress'] + this['loadStep']);
+            if (this['itemHandlers'][itemName]) {
+                this['itemHandlers'][itemName](this['loadedSoundsItems'][itemName]);
+            };
+        };
+    };
+
     /**
      * Загрузка актива
      * @param itemName
@@ -303,6 +378,11 @@ function Assets(options) {
                             case "animation":
                                 this.loadAnimation(itemName, itemData);
                                 break;
+
+                            case 'sound':
+                                this.loadSound(itemName, itemData);
+                                break;
+
                             case "hash":
                             default:
                                 this.loadHash(itemName, itemData);
