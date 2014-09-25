@@ -26,22 +26,30 @@
                         //console.log(message);
                     },
                     "progressHandler": function(progress) {
-                        console.log('progress: ' + progress + '%');
+                        //console.log('progress: ' + progress + '%');
                     },
                     "itemHandlers": {
                         "units": function(units) {
                             //console.log(units);
+                            console.log("load units");
                         },
                         "blocks": function(blocks) {
                             //console.log(blocks);
+                            console.log("load blocks");
                         },
                         "animations": function(animations) {
                             //console.log(animations);
+                            console.log("load animations");
                         },
                         "sounds": function(sounds) {
-                            console.log(sounds);
-                            sounds.other['laser_canon.mp3'].play();
+                            /*console.log(sounds);
+                            sounds.other['punch.mp3'].play();
+                            sounds.other['laser_canon.mp3'].play();*/
+                            console.log("load sounds");
                         }
+                    },
+                    "loadAll": function(items) {
+                        console.log("load all");
                     }
                 });
 			});
