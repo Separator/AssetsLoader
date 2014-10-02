@@ -62,7 +62,6 @@ function Assets(options) {
         };
         return false;
     };
-
     /**
      * Получить обработанные активы анимации
      * @param itemName
@@ -120,6 +119,11 @@ function Assets(options) {
         );
         return result;
     };
+    /**
+     * Загрузка актива типа "animation"
+     * @param itemName
+     * @param itemData
+     */
     this.loadAnimation = function(itemName, itemData) {
         var that = this;
         var phrases = this['phrases'];
@@ -300,8 +304,11 @@ function Assets(options) {
             };
         };
     };
-
-
+    /**
+     * Загрузка актива типа "sound"
+     * @param itemName
+     * @param itemData
+     */
     this.loadSound = function(itemName, itemData) {
         var that = this;
         var hasSounds = false;
@@ -386,7 +393,6 @@ function Assets(options) {
             };
         };
     };
-
     /**
      * Загрузка актива
      * @param itemName
