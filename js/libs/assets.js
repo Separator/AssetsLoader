@@ -175,10 +175,10 @@ function Assets(options) {
                                     that.setProgress(that['progress'] + that['loadStep']);
                                     if (that['itemHandlers'][itemName]) {
                                         that['itemHandlers'][itemName](that.animationProcess(itemName));
-                                        that['handlersStatus'][itemName] = true;
-                                        if (that.allItemsLoaded()) {
-                                            that.loadAll(that['loadedItems'][itemName]);
-                                        };
+                                    };
+                                    that['handlersStatus'][itemName] = true;
+                                    if (that.allItemsLoaded()) {
+                                        that.loadAll(that['loadedItems']);
                                     };
                                 };
                             };
@@ -190,10 +190,10 @@ function Assets(options) {
                                     that.setProgress(that['progress'] + that['loadStep']);
                                     if (that['itemHandlers'][itemName]) {
                                         that['itemHandlers'][itemName](that.animationProcess(itemName));
-                                        that['handlersStatus'][itemName] = true;
-                                        if (that.allItemsLoaded()) {
-                                            that.loadAll(that['loadedItems'][itemName]);
-                                        };
+                                    };
+                                    that['handlersStatus'][itemName] = true;
+                                    if (that.allItemsLoaded()) {
+                                        that.loadAll(that['loadedItems']);
                                     };
                                 };
                             };
@@ -207,10 +207,10 @@ function Assets(options) {
             this.setProgress(this['progress'] + this['loadStep']);
             if (this['itemHandlers'][itemName]) {
                 this['itemHandlers'][itemName](this['loadedItems'][itemName]);
-                this['handlersStatus'][itemName] = true;
-                if (this.allItemsLoaded()) {
-                    this.loadAll(this['loadedItems'][itemName]);
-                };
+            };
+            this['handlersStatus'][itemName] = true;
+            if (this.allItemsLoaded()) {
+                this.loadAll(this['loadedItems']);
             };
         };
     };
@@ -266,10 +266,10 @@ function Assets(options) {
                                 that.setProgress(that['progress'] + that['loadStep']);
                                 if (that['itemHandlers'][itemName]) {
                                     that['itemHandlers'][itemName](that['loadedItems'][itemName]);
-                                    that['handlersStatus'][itemName] = true;
-                                    if (that.allItemsLoaded()) {
-                                        that.loadAll(that['loadedItems'][itemName]);
-                                    };
+                                };
+                                that['handlersStatus'][itemName] = true;
+                                if (that.allItemsLoaded()) {
+                                    that.loadAll(that['loadedItems']);
                                 };
                             };
                         };
@@ -281,10 +281,10 @@ function Assets(options) {
                                 that.setProgress(that['progress'] + that['loadStep']);
                                 if (that['itemHandlers'][itemName]) {
                                     that['itemHandlers'][itemName](that['loadedItems'][itemName]);
-                                    that['handlersStatus'][itemName] = true;
-                                    if (that.allItemsLoaded()) {
-                                        that.loadAll(that['loadedItems'][itemName]);
-                                    };
+                                };
+                                that['handlersStatus'][itemName] = true;
+                                if (that.allItemsLoaded()) {
+                                    that.loadAll(that['loadedItems']);
                                 };
                             };
                         };
@@ -297,10 +297,10 @@ function Assets(options) {
             this.setProgress(this['progress'] + this['loadStep']);
             if (this['itemHandlers'][itemName]) {
                 this['itemHandlers'][itemName](this['loadedItems'][itemName]);
-                this['handlersStatus'][itemName] = true;
-                if (this.allItemsLoaded()) {
-                    this.loadAll(this['loadedItems'][itemName]);
-                };
+            };
+            this['handlersStatus'][itemName] = true;
+            if (this.allItemsLoaded()) {
+                this.loadAll(this['loadedItems']);
             };
         };
     };
@@ -350,15 +350,16 @@ function Assets(options) {
                         audio.addEventListener('canplaythrough', function() {
                             loadedSoundsNum++;
                             that['loadedSoundsItems'][itemName][soundLibName][soundFileName] = this;
+                            that['loadedItems'][itemName][soundLibName][soundFileName] = this;
                             if (loadedSoundsNum == soundsNum) {
                                 // обработка загрузки:
                                 that.setProgress(that['progress'] + that['loadStep']);
                                 if (that['itemHandlers'][itemName]) {
                                     that['itemHandlers'][itemName](that['loadedSoundsItems'][itemName]);
-                                    that['handlersStatus'][itemName] = true;
-                                    if (that.allItemsLoaded()) {
-                                        that.loadAll(that['loadedItems'][itemName]);
-                                    };
+                                };
+                                that['handlersStatus'][itemName] = true;
+                                if (that.allItemsLoaded()) {
+                                    that.loadAll(that['loadedItems']);
                                 };
                             };
                         }, false);
@@ -370,10 +371,10 @@ function Assets(options) {
                                 that.setProgress(that['progress'] + that['loadStep']);
                                 if (that['itemHandlers'][itemName]) {
                                     that['itemHandlers'][itemName](that['loadedSoundsItems'][itemName]);
-                                    that['handlersStatus'][itemName] = true;
-                                    if (that.allItemsLoaded()) {
-                                        that.loadAll(that['loadedItems'][itemName]);
-                                    };
+                                };
+                                that['handlersStatus'][itemName] = true;
+                                if (that.allItemsLoaded()) {
+                                    that.loadAll(that['loadedItems']);
                                 };
                             };
                         }, false);
@@ -386,10 +387,10 @@ function Assets(options) {
             this.setProgress(this['progress'] + this['loadStep']);
             if (this['itemHandlers'][itemName]) {
                 this['itemHandlers'][itemName](this['loadedSoundsItems'][itemName]);
-                this['handlersStatus'][itemName] = true;
-                if (this.allItemsLoaded()) {
-                    this.loadAll(this['loadedItems'][itemName]);
-                };
+            };
+            this['handlersStatus'][itemName] = true;
+            if (this.allItemsLoaded()) {
+                this.loadAll(this['loadedItems']);
             };
         };
     };
@@ -465,8 +466,9 @@ function Assets(options) {
      */
     this.allItemsLoaded = function() {
         var result = true;
+        var downloadList = this['downloadList'];
         var handlersStatus = this['handlersStatus'];
-        for (var itemName in handlersStatus) {
+        for (var itemName in downloadList) {
             if (!handlersStatus[itemName]) {
                 result = false;
                 break;
